@@ -147,3 +147,79 @@ window.addEventListener('DOMContentLoaded', () => {
         alert("لم يتم العثور على زر رفع الصورة في الصفحة!");
     }
 });
+// ==========================================
+// 1. خوارزمية AES (التشفير المتماثل)
+// ==========================================
+// دالة مساعدة لتحويل النص إلى مصفوفة بايتات
+function stringToArrayBuffer(str) {
+    return new TextEncoder().encode(str);
+}
+
+// دالة مساعدة لتحويل مصفوفة البايتات إلى نص مقروء (Hex)
+function arrayBufferToHex(buffer) {
+    return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// دالة التشفير بـ AES
+async function encryptAES(text, password) {
+    try {
+        // تحويل كلمة المرور إلى مفتاح تشفير
+        const enc = new TextEncoder();
+        const keyMaterial = await window.crypto.subtle.importKey(
+            "raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]
+        );
+        const key = await window.crypto.subtle.deriveKey(
+            { name: "PBKDF2", salt: enc.encode("salt"), iterations: 100000, hash: "SHA-256" },
+            keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+        );
+        
+        // التشفير
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const encrypted = await window.crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: iv }, key, enc.encode(text)
+        );
+        
+        // دمج IV مع النص المشفر لعرضه
+        return arrayBufferToHex(iv.buffer) + ":" + arrayBufferToHex(encrypted);
+    } catch (e) {
+        return "خطأ في التشفير: " + e.message;
+    }
+}
+
+// ==========================================
+// 2. خوارزمية RSA (التشفير غير المتماثل)
+// ==========================================
+let rsaKeyPair = null; // متغير لحفظ المفاتيح
+
+// توليد المفاتيح
+async function generateRSAKeys() {
+    try {
+        rsaKeyPair = await window.crypto.subtle.generateKey(
+            {
+                name: "RSA-OAEP",
+                modulusLength: 2048,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: "SHA-256",
+            },
+            true,
+            ["encrypt", "decrypt"]
+        );
+        return "تم توليد المفاتيح بنجاح!";
+    } catch (e) {
+        return "خطأ في توليد المفاتيح: " + e.message;
+    }
+}
+
+// التشفير بالمفتاح العام
+async function encryptRSA(text) {
+    if (!rsaKeyPair) return "يرجى توليد المفاتيح أولاً!";
+    try {
+        const enc = new TextEncoder();
+        const encrypted = await window.crypto.subtle.encrypt(
+            { name: "RSA-OAEP" }, rsaKeyPair.publicKey, enc.encode(text)
+        );
+        return arrayBufferToHex(encrypted);
+    } catch (e) {
+        return "خطأ: " + e.message;
+    }
+}
