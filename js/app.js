@@ -1,6 +1,5 @@
 // نظام لطيف لإظهار أي خطأ يحدث على شاشة الهاتف
-window.onerror = function(message, source, lineno, colno, error) {
-    alert("حدث خطأ في الكود: " + message + " في السطر: " + lineno);
+
     return false;
 };
 
