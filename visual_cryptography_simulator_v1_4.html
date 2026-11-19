@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Visual Cryptography Simulator</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d30;--panel2:#18263d;--line:#2b3b55;--txt:#edf3ff;--muted:#9eb0ca;--blue:#65a9ff;--green:#49d6a0;--red:#ff8585}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#172b49 0,transparent 35%),var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6}
+header{padding:24px 16px 18px;text-align:center;border-bottom:1px solid var(--line)}header h1{font-size:24px;margin:0 0 6px}header p{margin:0;color:var(--muted);font-size:13px}
+main{max-width:850px;margin:auto;padding:16px}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+button,select,input,textarea{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--txt);border-radius:12px;padding:10px 12px}
+.tab{font-size:13px}.tab.active,.primary{background:#1e4f89;border-color:#367ac2}
+.card{background:linear-gradient(145deg,var(--panel),#101a2b);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0;box-shadow:0 8px 24px #0002}
+h2{font-size:18px;margin:0 0 12px}.hint{font-size:12px;color:var(--muted);margin:4px 0 10px}
+label{display:block;font-size:13px;color:#c8d6eb;margin:10px 0 5px}
+input,textarea,select{width:100%;background:#0a1322;border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:11px;outline:none}
+textarea{min-height:82px;resize:vertical;direction:ltr;text-align:left}
+input{direction:ltr;text-align:left}select{direction:rtl}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button{flex:1;min-width:115px}
+.result{direction:ltr;text-align:left;word-break:break-all;background:#07101d;border:1px dashed #3a587c;padding:13px;border-radius:11px;min-height:48px;font-family:ui-monospace,monospace}
+.steps{display:grid;gap:8px}.step{display:flex;align-items:center;gap:10px;background:#0b1728;border:1px solid var(--line);padding:10px;border-radius:10px;direction:ltr;text-align:left;overflow-wrap:anywhere}
+.dot{width:26px;height:26px;flex:none;border-radius:50%;display:grid;place-items:center;background:#204b78;color:#fff;font-size:12px}
+.pill{display:inline-block;background:#173c36;color:var(--green);border:1px solid #286b5a;padding:2px 9px;border-radius:30px;font-size:11px}
+.hidden{display:none!important}.note{font-size:12px;color:var(--muted)}.good{color:var(--green)}.bad{color:var(--red)}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+@media(min-width:650px){.tabs{grid-template-columns:repeat(5,1fr)}}
+
+.visual-board{display:flex;flex-wrap:wrap;gap:8px;direction:ltr;justify-content:center;margin-top:10px}
+.letter-pair{min-width:58px;background:#0a1728;border:1px solid #345070;border-radius:12px;padding:8px 6px;text-align:center;animation:pop .35s ease both}
+.letter-pair .from{font:700 20px ui-monospace,monospace;color:#edf3ff}
+.letter-pair .to{font:700 20px ui-monospace,monospace;color:var(--green)}
+.letter-pair .arrow{font-size:11px;color:var(--muted)}
+.alphabet-line{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;direction:ltr;margin:8px 0}
+.alphabet-line span{font:12px ui-monospace,monospace;padding:4px 5px;background:#0a1728;border:1px solid var(--line);border-radius:5px}
+
+.crypto-flow{display:grid;gap:9px;margin-top:12px}
+.flow-row{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;background:#0a1728;border:1px solid var(--line);border-radius:11px;padding:10px}
+.flow-num{width:30px;height:30px;border-radius:9px;background:#204b78;display:grid;place-items:center;font-weight:700}
+.flow-title{font-weight:700;color:#dceaff}
+.flow-desc{font-size:12px;color:var(--muted);direction:rtl}
+.flow-chip{display:inline-block;margin:4px 3px 0 0;padding:5px 8px;border-radius:7px;background:#172b43;border:1px solid #345070;font:11px ui-monospace,monospace;direction:ltr}
+.block-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;direction:ltr}
+.byte-block{min-width:62px;padding:8px;border-radius:8px;background:#123c38;border:1px solid #286b5a;text-align:center;font:11px ui-monospace,monospace;color:#9ff0d1}
+.key-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.key-box{padding:10px;border-radius:10px;background:#0b1728;border:1px solid var(--line);text-align:center}
+.key-box strong{display:block;color:var(--green);direction:ltr}
+.key-box span{font-size:11px;color:var(--muted)}
+
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.lab-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:10px 0}
+.lab-badge{background:#173a5d;border:1px solid #35658e;color:#b8ddff;border-radius:20px;padding:5px 10px;font-size:12px}
+.lab-stage-name{font-weight:700;color:#9fe7cb}
+.aes-state-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-width:390px;margin:12px auto;direction:ltr}
+.aes-cell{background:#0a1728;border:1px solid #31506f;border-radius:9px;padding:10px 3px;text-align:center;font:700 14px ui-monospace,monospace;color:#dcecff;min-height:43px;display:grid;place-items:center}
+.aes-cell.changed{background:#17483e;border-color:#3b9a7e;color:#aaffdc;animation:pop .22s ease-out}
+.lab-details{border-top:1px solid var(--line);padding-top:10px;margin-top:14px}
+.lab-details summary{cursor:pointer;color:#b9d7ff;font-size:13px}
+@media(max-width:420px){.aes-cell{padding:8px 2px;font-size:12px;min-height:38px}.aes-state-grid{gap:4px}}
+
+
+.rsa-input-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rsa-status{padding:9px 11px;border-radius:9px;background:#10253b;border:1px solid #294968;color:#bcdcff;font-size:12px;margin:10px 0}
+.rsa-status.error{background:#3a1b25;border-color:#743545;color:#ffc4ce}
+.rsa-step-content{background:#0a1728;border:1px solid var(--line);border-radius:12px;padding:13px;min-height:105px;direction:rtl}
+.rsa-step-content .formula{direction:ltr;text-align:center;font:700 15px ui-monospace,monospace;color:#a9e9d2;background:#102b2a;border:1px solid #28574d;border-radius:8px;padding:9px;margin:8px 0;overflow-wrap:anywhere}
+.rsa-step-content .explain{font-size:13px;color:#c5d4e8}
+.rsa-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.rsa-result{background:#0b1728;border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
+.rsa-result span{display:block;color:var(--muted);font-size:11px}
+.rsa-result strong{display:block;color:#a9e9d2;font:700 13px ui-monospace,monospace;direction:ltr;overflow-wrap:anywhere;margin-top:4px}
+@media(max-width:390px){.rsa-input-grid{grid-template-columns:1fr 1fr}.rsa-result-grid{grid-template-columns:1fr 1fr}}
+
+</style>
+</head>
+<body>
+<header>
+  <h1>🔐 Visual Cryptography Simulator</h1>
+  <p>محاكي مرئي للتشفير وفك التشفير — يعمل محلياً على هاتفك</p>
+</header>
+<main>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="caesar">Caesar</button>
+    <button class="tab" data-tab="vigenere">Vigenère</button>
+    <button class="tab" data-tab="aes">AES-GCM</button>
+    <button class="tab" data-tab="rsa">RSA</button>
+    <button class="tab" data-tab="hash">SHA-256</button>
+  </div>
+
+  <section id="caesar" class="panel">
+    <div class="card">
+      <h2>1) Caesar Cipher <span class="pill">Symmetric</span></h2>
+      <p class="hint">كل حرف يتحرك بعدد محدد من الخانات في الأبجدية الإنجليزية.</p>
+      <label>النص الأصلي / المشفّر</label><textarea id="cText" placeholder="اكتب مثلاً: HELLO">HELLO</textarea>
+      <label>المفتاح — عدد الإزاحات</label><input id="cKey" type="number" min="1" max="25" value="3">
+      <div class="actions"><button class="primary" onclick="caesar('enc')">🔒 تشفير</button><button onclick="caesar('dec')">🔓 فك التشفير</button></div>
+    </div>
+  </section>
+
+  <section id="vigenere" class="panel hidden">
+    <div class="card">
+      <h2>2) Vigenère Cipher <span class="pill">Symmetric</span></h2>
+      <p class="hint">كل حرف من المفتاح يحدد إزاحة مختلفة. استعمل حروف A–Z.</p>
+      <label>النص</label><textarea id="vText" placeholder="اكتب النص">ATTACK AT DAWN</textarea>
+      <label>المفتاح (حروف إنجليزية)</label><input id="vKey" value="KEY" placeholder="KEY">
+      <div class="actions"><button class="primary" onclick="vigenere('enc')">🔒 تشفير</button><button onclick="vigenere('dec')">🔓 فك التشفير</button></div>
+    </div>
+  </section>
+
+  <section id="aes" class="panel hidden">
+    <div class="card">
+      <h2>3) AES-GCM <span class="pill">Symmetric</span></h2>
+      <p class="hint">تشفير حقيقي عبر Web Crypto API. كلمة المرور تتحول إلى مفتاح باستخدام PBKDF2.</p>
+      <label>النص</label><textarea id="aText" placeholder="اكتب أي رسالة">رسالة سرية للتجربة</textarea>
+      <label>كلمة المرور</label><input id="aPass" type="password" value="StrongDemoPass123!" placeholder="أدخل كلمة مرور">
+      <div class="actions"><button class="primary" onclick="aesEncrypt()">🔒 تشفير</button><button onclick="aesDecrypt()">🔓 فك التشفير</button></div>
+      <p class="note">احتفظ بالنص المشفّر كاملاً كما هو؛ يحتوي على Salt و IV الضروريين لفك التشفير.</p>
+    </div>
+  </section>
+
+  <section id="rsa" class="panel hidden">
+    <div class="card">
+      <h2>4) RSA-OAEP <span class="pill">Asymmetric</span></h2>
+      <p class="hint">نولّد زوج مفاتيح: Public Key للتشفير وPrivate Key لفك التشفير. المحاكاة تستعمل RSA-OAEP مع SHA-256.</p>
+      <div class="actions"><button class="primary" onclick="rsaGenerate()">⚙️ توليد المفاتيح</button></div>
+      <p id="rsaStatus" class="note">لم يتم توليد المفاتيح بعد.</p>
+      <label>الرسالة (قصيرة)</label><textarea id="rText">Hello RSA</textarea>
+      <div class="actions"><button onclick="rsaEncrypt()">🔒 تشفير بالمفتاح العام</button><button onclick="rsaDecrypt()">🔓 فك بالمفتاح الخاص</button></div>
+      <p class="note">المفاتيح تبقى داخل جلسة الصفحة ولا يتم إرسالها إلى أي خادم.</p>
+    </div>
+  </section>
+
+  <section id="hash" class="panel hidden">
+    <div class="card">
+      <h2>5) SHA-256 <span class="pill">Hashing</span></h2>
+      <p class="hint">Hashing ليس تشفيراً: لا يوجد مفتاح ولا يمكن استرجاع النص الأصلي من البصمة.</p>
+      <label>النص</label><textarea id="hText">Hello World</textarea>
+      <div class="actions"><button class="primary" onclick="makeHash()">⚡ حساب البصمة</button></div>
+    </div>
+  </section>
+
+
+
+
+  <div class="card" id="rsaLab">
+    <h2>مختبر RSA التفاعلي</h2>
+    <p class="hint">غيّر الأعداد الأولية، ثم تقدّم مرحلة بمرحلة لبناء المفاتيح وتجربة التشفير وفكّه. هذا نموذج تعليمي بأعداد صغيرة فقط.</p>
+    <div class="rsa-input-grid">
+      <div><label for="rsaP">العدد الأولي p</label><input id="rsaP" type="number" min="3" max="97" step="1" value="11"></div>
+      <div><label for="rsaQ">العدد الأولي q</label><input id="rsaQ" type="number" min="3" max="97" step="1" value="13"></div>
+      <div><label for="rsaE">المفتاح العام e</label><input id="rsaE" type="number" min="3" step="1" value="7"></div>
+      <div><label for="rsaM">الرسالة الرقمية m</label><input id="rsaM" type="number" min="0" step="1" value="9"></div>
+    </div>
+    <div class="actions"><button id="rsaBuild" class="primary" type="button">تحقق وابدأ</button><button id="rsaLabReset" type="button">إعادة المثال</button></div>
+    <div id="rsaLabStatus" class="rsa-status" role="status">المثال الافتراضي: p=11 و q=13 و e=7 و m=9.</div>
+    <div class="lab-toolbar"><span class="lab-badge" id="rsaStepBadge">المرحلة 0 / 6</span><span class="lab-stage-name" id="rsaStepTitle">جاهز</span></div>
+    <div id="rsaStepContent" class="rsa-step-content">اضغط «تحقق وابدأ» لبدء الحساب.</div>
+    <div class="actions"><button id="rsaPrevStep" type="button" disabled>السابق</button><button id="rsaNextStep" type="button" class="primary" disabled>التالي</button></div>
+    <div class="rsa-result-grid">
+      <div class="rsa-result"><span>Public Key</span><strong id="rsaPublicOut">(e, n)</strong></div>
+      <div class="rsa-result"><span>Private Key</span><strong id="rsaPrivateOut">(d, n)</strong></div>
+      <div class="rsa-result"><span>Ciphertext</span><strong id="rsaCipherOut">—</strong></div>
+      <div class="rsa-result"><span>Recovered</span><strong id="rsaPlainOut">—</strong></div>
+    </div>
+    <p class="hint">ملاحظة: هذا المختبر يشرح RSA الأساسي باستخدام أعداد صغيرة وعمليات modular exponentiation. التطبيق الحقيقي بالأعلى يستعمل RSA-OAEP مع مفاتيح 2048-bit، وهو مختلف وأكثر أماناً.</p>
+  </div>
+
+  <div class="card" id="aesLab">
+    <h2>مختبر AES التفاعلي</h2>
+    <p class="hint">تتبّع مثالاً تعليمياً لكتلة AES بحجم 128 bit (16 bytes). تنقّل بين المراحل وشاهد تغيّر كل Byte داخل المصفوفة 4×4.</p>
+    <div class="lab-toolbar">
+      <span id="aesStageBadge" class="lab-badge">المرحلة 0 / 5</span>
+      <span id="aesStageName" class="lab-stage-name">قبل بدء الجولة</span>
+    </div>
+    <div id="aesStateGrid" class="aes-state-grid" aria-label="AES state matrix"></div>
+    <p id="aesStageDescription" class="hint">اضغط «ابدأ» لعرض أول تحويل.</p>
+    <div class="actions">
+      <button type="button" id="aesPrev">السابق</button>
+      <button type="button" class="primary" id="aesNext">ابدأ / التالي</button>
+      <button type="button" id="aesReset">إعادة</button>
+    </div>
+    <details class="lab-details">
+      <summary>اعرض مفتاح الجولة والمصفوفة الأصلية</summary>
+      <p class="hint">هذا مثال ثابت مستقل لشرح جولة AES، وليس المفتاح أو البيانات المستعملة في تشفيرك الفعلي بالأعلى.</p>
+      <div id="aesKeyGrid" class="aes-state-grid"></div>
+      <p class="hint" id="aesInitialState"></p>
+    </details>
+  </div>
+
+  <div class="card" id="visualCard">
+    <h2>المحاكاة المرئية</h2>
+    <p class="hint" id="visualHint">نفّذ عملية Caesar أو Vigenère أو AES أو RSA لعرض خطواتها هنا.</p>
+    <div id="visual" class="visual-board"></div>
+    <div id="cryptoFlow" class="crypto-flow"></div>
+  </div>
+
+  <div class="card">
+    <h2>النتيجة المرئية</h2>
+    <p id="status" class="hint">اختر خوارزمية، أدخل النص ثم اضغط تشفير أو فك التشفير.</p>
+    <label>Output</label><div class="result" id="output">—</div>
+    <div class="actions"><button onclick="copyOutput()">نسخ النتيجة</button><button onclick="clearOutput()">مسح</button></div>
+  </div>
+  <div class="card">
+    <h2>مراحل العملية</h2>
+    <div class="steps" id="steps"><div class="step"><span class="dot">1</span><span>بانتظار تنفيذ عملية...</span></div></div>
+  </div>
+  <footer>نسخة تعليمية محلية · Caesar / Vigenère / AES-GCM / RSA-OAEP / SHA-256</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let active='caesar', aesPackage='', rsaPair=null, rsaCipher='';
+function show(tab){active=tab;document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('hidden',p.id!==tab));document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));clearOutput();}
+$('tabs').addEventListener('click',e=>{let b=e.target.closest('[data-tab]');if(b)show(b.dataset.tab)});
+function render(out,status,steps){$('output').textContent=out;$('status').textContent=status;$('steps').innerHTML='';steps.forEach((s,i)=>{let d=document.createElement('div');d.className='step';let n=document.createElement('span');n.className='dot';n.textContent=i+1;let t=document.createElement('span');t.textContent=s;d.append(n,t);$('steps').append(d)});}
+function clearOutput(){$('output').textContent='—';$('status').textContent='جاهز للعمل.';$('steps').innerHTML='<div class="step"><span class="dot">1</span><span>بانتظار تنفيذ عملية...</span></div>';clearVisual();$('visualHint').textContent='نفّذ عملية لعرض المحاكاة المرئية.'}
+function caesar(mode){
+ let text=$('cText').value,key=Number($('cKey').value);
+ if(!Number.isInteger(key)||key<0||key>25)return render('','المفتاح يجب أن يكون بين 0 و25.',['تحقق من المفتاح']);
+ let k=mode==='enc'?key:-key;
+ let out=[...text].map(ch=>{let n=ch.charCodeAt(0);if(n>=65&&n<=90)return String.fromCharCode((n-65+k+52)%26+65);if(n>=97&&n<=122)return String.fromCharCode((n-97+k+52)%26+97);return ch}).join('');
+ render(out,mode==='enc'?'تم التشفير بخوارزمية Caesar.':'تم فك التشفير بخوارزمية Caesar.',[`Input: ${text}`,`Shift key: ${key}`,`Operation: ${mode==='enc'?'حرف + المفتاح':'حرف - المفتاح'}`,`Output: ${out}`]);
+ visualizeCaesar(text,out,key,mode);
+}
+function visualizeCaesar(input,output,key,mode){
+ const box=$('visual');box.innerHTML='';
+ $('visualHint').textContent=`${mode==='enc'?'Encryption':'Decryption'} — ${mode==='enc'?'نتحرك إلى الأمام':'نتحرك إلى الخلف'} بمقدار ${key} خانات.`;
+ const a='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+ const top=document.createElement('div');top.style.width='100%';
+ top.innerHTML='<div class="hint">Alphabet الأصلي</div>';
+ const line=document.createElement('div');line.className='alphabet-line';
+ [...a].forEach(ch=>{let s=document.createElement('span');s.textContent=ch;line.append(s)});
+ top.append(line);box.append(top);
+ [...input].forEach((ch,i)=>{
+   const pair=document.createElement('div');pair.className='letter-pair';pair.style.animationDelay=(i*70)+'ms';
+   const from=document.createElement('div');from.className='from';from.textContent=ch;
+   const arrow=document.createElement('div');arrow.className='arrow';arrow.textContent='↓ '+(mode==='enc'?'+'+key:'−'+key);
+   const to=document.createElement('div');to.className='to';to.textContent=output[i];
+   pair.append(from,arrow,to);box.append(pair);
+ });
+}
+function vigenere(mode){let text=$('vText').value,key=$('vKey').value.toUpperCase().replace(/[^A-Z]/g,'');if(!key)return render('','أدخل مفتاحاً يحتوي على حروف A–Z.',['المفتاح غير صالح']);let j=0,out=[...text].map(ch=>{let n=ch.charCodeAt(0),base=n>=65&&n<=90?65:n>=97&&n<=122?97:-1;if(base<0)return ch;let shift=key.charCodeAt(j++%key.length)-65;return String.fromCharCode((n-base+(mode==='enc'?shift:-shift)+260)%26+base)}).join('');render(out,'تمت العملية بخوارزمية Vigenère.',[`Input: ${text}`,`Key: ${key}`,`تتكرر حروف المفتاح فوق حروف النص فقط`,`Operation: ${mode==='enc'?'P + K (mod 26)':'C - K (mod 26)'}`,`Output: ${out}`]);$('visualHint').textContent='Vigenère: كل حرف من المفتاح يعطي إزاحة مختلفة.';$('visual').innerHTML='';[...text].forEach((ch,i)=>{let p=document.createElement('div');p.className='letter-pair';p.style.animationDelay=(i*60)+'ms';let f=document.createElement('div');f.className='from';f.textContent=ch;let ar=document.createElement('div');ar.className='arrow';ar.textContent='Key: '+key[i%key.length];let t=document.createElement('div');t.className='to';t.textContent=out[i];p.append(f,ar,t);$('visual').append(p)});}
+
+function clearVisual(){
+ $('visual').innerHTML='';$('cryptoFlow').innerHTML='';
+}
+function flowStep(num,title,desc,extra=''){
+ const row=document.createElement('div');row.className='flow-row';
+ const n=document.createElement('div');n.className='flow-num';n.textContent=num;
+ const body=document.createElement('div');
+ const t=document.createElement('div');t.className='flow-title';t.textContent=title;
+ const d=document.createElement('div');d.className='flow-desc';d.textContent=desc;
+ body.append(t,d);
+ if(extra){const x=document.createElement('div');x.innerHTML=extra;body.append(x);}
+ row.append(n,body);$('cryptoFlow').append(row);
+}
+function visualizeAES(text,mode){
+ clearVisual();
+ const bytes=new TextEncoder().encode(text);
+ const blocks=Math.max(1,Math.ceil(bytes.length/16));
+ $('visualHint').textContent=`AES-256-GCM — ${mode==='encrypt'?'مسار التشفير':'مسار فك التشفير'} | ${bytes.length} bytes UTF-8`;
+ flowStep('1','Plaintext / Ciphertext',`النص يحتوي على ${bytes.length} بايت بعد تحويله إلى UTF-8.`);
+ const grid=document.createElement('div');grid.className='block-grid';
+ for(let i=0;i<blocks;i++){
+   const b=document.createElement('div');b.className='byte-block';
+   const size=Math.min(16,Math.max(0,bytes.length-i*16));
+   b.textContent=`Block ${i+1}\n${size}/16 bytes`;grid.append(b);
+ }
+ $('cryptoFlow').lastChild.querySelector('.flow-desc').append(grid);
+ flowStep('2','Key Derivation — PBKDF2', 'كلمة المرور + Salt عشوائي + SHA-256 × 150,000 iterations → مفتاح AES بطول 256 bit.');
+ flowStep('3','AES-256 Core','AES يعمل على كتل حجمها 128 bit (16 bytes)، ومفتاح 256 bit يمر عبر 14 جولة. تفاصيل الجولات الداخلية غير مكشوفة من Web Crypto API.');
+ flowStep('4','GCM Mode + Authentication', 'GCM يستعمل نمط Counter للتشفير وينتج Authentication Tag لاكتشاف أي تعديل أو كلمة مرور خاطئة.');
+ flowStep('5','Package', mode==='encrypt'?'يتم حفظ Salt + IV + Ciphertext معاً حتى يمكن فك التشفير لاحقاً.':'يتم استعمال Salt وIV للتحقق وفك التشفير ثم استرجاع النص الأصلي.');
+}
+function visualizeRSA(mode){
+ clearVisual();
+ const titles={
+ generate:['توليد المفاتيح','إنشاء زوج مفاتيح RSA بطول 2048 bit مع SHA-256.'],
+ encrypt:['التشفير','الرسالة تتحول إلى bytes ثم تُشفّر باستعمال Public Key عبر RSA-OAEP.'],
+ decrypt:['فك التشفير','يُستعمل Private Key لفك Ciphertext واسترجاع الرسالة الأصلية.']
+ };
+ $('visualHint').textContent='RSA-OAEP — محاكاة مسار المفاتيح والبيانات.';
+ flowStep('1','Key Pair',titles[mode][1]);
+ const keys=document.createElement('div');keys.className='key-pair';
+ keys.innerHTML='<div class="key-box"><strong>PUBLIC KEY</strong><span>متاح للمشاركة — Encryption</span></div><div class="key-box"><strong>PRIVATE KEY</strong><span>سري — Decryption</span></div>';
+ $('cryptoFlow').append(keys);
+ if(mode==='generate'){
+   flowStep('2','Public Exponent','e = 65537 — قيمة عامة تستعمل ضمن عملية RSA.');
+   flowStep('3','Private Exponent','d — قيمة سرية مرتبطة رياضياً بالمفتاح العام، لا نعرضها ولا نكشفها.');
+ }else if(mode==='encrypt'){
+   flowStep('2','Public Key + OAEP','التشفير يتم بالمفتاح العام، مع Padding من نوع OAEP وHash SHA-256.');
+   flowStep('3','Ciphertext','الناتج بيانات مشفّرة لا تُقرأ كنص عادي.');
+ }else{
+   flowStep('2','Private Key + OAEP','فقط المفتاح الخاص المطابق يستطيع فك التشفير.');
+   flowStep('3','Plaintext','بعد نجاح التحقق وفك التشفير، ترجع الرسالة الأصلية.');
+ }
+ flowStep('4','Security note','RSA مناسب لتشفير مفاتيح صغيرة أو بيانات قصيرة؛ في التطبيقات الواقعية غالباً يُستعمل لتبادل مفتاح AES.');
+}
+
+const enc=b=>btoa(String.fromCharCode(...new Uint8Array(b)));
+const dec=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function derive(pass,salt){let material=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
+async function aesEncrypt(){try{if(!crypto.subtle)throw Error('Web Crypto غير متاح في هذا المتصفح/السياق. افتح الملف عبر localhost في Termux.');let pass=$('aPass').value;if(!pass)throw Error('أدخل كلمة المرور');let salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),key=await derive(pass,salt),data=new TextEncoder().encode($('aText').value),cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,data);aesPackage=[enc(salt),enc(iv),enc(cipher)].join('.');render(aesPackage,'تم التشفير باستعمال AES-256-GCM. احتفظ بالنص كاملاً.', ['Plaintext → UTF-8 bytes', 'توليد Salt عشوائي', 'اشتقاق مفتاح AES-256 من كلمة المرور عبر PBKDF2 / SHA-256', 'توليد IV عشوائي', 'AES-GCM: تشفير + التحقق من سلامة البيانات', 'Output = Salt . IV . Ciphertext']);visualizeAES($('aText').value,'encrypt');}catch(e){render('',e.message,['تعذر تنفيذ التشفير']);}}
+async function aesDecrypt(){try{if(!crypto.subtle)throw Error('Web Crypto غير متاح. افتح عبر localhost في Termux.');let pass=$('aPass').value,parts=$('output').textContent.trim().split('.');if(parts.length!==3||parts[0]==='—')throw Error('اضغط تشفير أولاً أو ضع الحزمة Salt.IV.Ciphertext في خانة Output غير ممكنة في هذه النسخة؛ أعد التشفير في نفس الجلسة.');let [salt,iv,cipher]=parts.map(dec),key=await derive(pass,salt),plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,cipher);render(new TextDecoder().decode(plain),'نجح فك التشفير والتحقق من سلامة الرسالة.', ['قراءة Salt و IV و Ciphertext', 'اشتقاق نفس مفتاح AES من كلمة المرور', 'AES-GCM يتحقق من سلامة البيانات', 'Ciphertext → Plaintext']);visualizeAES(new TextDecoder().decode(plain),'decrypt');}catch(e){render('', 'فشل فك التشفير: كلمة مرور خاطئة أو بيانات غير صحيحة.',[e.message]);}}
+async function rsaGenerate(){try{if(!crypto.subtle)throw Error('Web Crypto غير متاح. افتح عبر localhost في Termux.');rsaPair=await crypto.subtle.generateKey({name:'RSA-OAEP',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['encrypt','decrypt']);$('rsaStatus').textContent='تم توليد زوج المفاتيح بنجاح (2048-bit).';render('Public Key + Private Key','تم توليد زوج مفاتيح RSA داخل الهاتف.', ['توليد عددين أوليين كبيرين داخلياً', 'إنشاء Public Key', 'إنشاء Private Key', 'Public Key للتشفير وPrivate Key لفك التشفير']);visualizeRSA('generate');}catch(e){render('',e.message,['فشل توليد المفاتيح']);}}
+async function rsaEncrypt(){try{if(!rsaPair)throw Error('ولّد المفاتيح أولاً');let data=new TextEncoder().encode($('rText').value);if(data.length>190)throw Error('الرسالة طويلة لهذه التجربة؛ استعمل أقل من 190 بايت.');let c=await crypto.subtle.encrypt({name:'RSA-OAEP'},rsaPair.publicKey,data);rsaCipher=enc(c);render(rsaCipher,'تم التشفير باستعمال Public Key.', ['Plaintext → UTF-8', 'استعمال المفتاح العام Public Key', 'RSA-OAEP مع SHA-256', 'الناتج Ciphertext']);visualizeRSA('encrypt');}catch(e){render('',e.message,['تعذر تشفير الرسالة']);}}
+async function rsaDecrypt(){try{if(!rsaPair||!rsaCipher)throw Error('ولّد المفاتيح ثم شفّر رسالة أولاً');let p=await crypto.subtle.decrypt({name:'RSA-OAEP'},rsaPair.privateKey,dec(rsaCipher));render(new TextDecoder().decode(p),'تم فك التشفير باستعمال Private Key.', ['Ciphertext', 'استعمال المفتاح الخاص Private Key', 'RSA-OAEP يفك التشفير', 'استرجاع Plaintext']);visualizeRSA('decrypt');}catch(e){render('',e.message,['تعذر فك التشفير']);}}
+async function makeHash(){try{let data=new TextEncoder().encode($('hText').value),hash=await crypto.subtle.digest('SHA-256',data),out=[...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('');render(out,'تم حساب SHA-256. هذه بصمة وليست تشفيراً.', ['النص الأصلي → UTF-8 bytes','تمرير البيانات إلى SHA-256','إنتاج بصمة ثابتة بطول 256 bit (64 hex characters)','لا توجد عملية Decryption عكسية']);}catch(e){render('',e.message,['تعذر حساب البصمة']);}}
+async function copyOutput(){try{await navigator.clipboard.writeText($('output').textContent);$('status').textContent='تم نسخ النتيجة.'}catch(e){$('status').textContent='حدد النتيجة وانسخها يدوياً.'}}
+
+// Educational AES round explorer: standard AES byte transformations on a fixed example.
+(()=>{
+ const $id=id=>document.getElementById(id);
+ const initial=[0x32,0x88,0x31,0xe0,0x43,0x5a,0x31,0x37,0xf6,0x30,0x98,0x07,0xa8,0x8d,0xa2,0x34];
+ const roundKey=[0x2b,0x28,0xab,0x09,0x7e,0xae,0xf7,0xcf,0x15,0xd2,0x15,0x4f,0x16,0xa6,0x88,0x3c];
+ const xtime=x=>((x<<1)^((x&0x80)?0x11b:0))&255;
+ function mul(a,b){let r=0;while(b){if(b&1)r^=a;a=xtime(a);b>>=1;}return r;}
+ function gfPow(a,n){let r=1;while(n){if(n&1)r=mul(r,a);a=mul(a,a);n>>=1;}return r;}
+ function rotl(x,n){return ((x<<n)|(x>>(8-n)))&255;}
+ function sbox(x){const inv=x===0?0:gfPow(x,254);return (inv^rotl(inv,1)^rotl(inv,2)^rotl(inv,3)^rotl(inv,4)^0x63)&255;}
+ function addKey(s){return s.map((v,i)=>v^roundKey[i]);}
+ function subBytes(s){return s.map(sbox);}
+ function shiftRows(s){
+   const o=s.slice();
+   for(let r=0;r<4;r++)for(let c=0;c<4;c++)o[4*c+r]=s[4*((c+r)%4)+r];
+   return o;
+ }
+ function mixColumns(s){
+   const o=s.slice();
+   for(let c=0;c<4;c++){
+     const i=4*c,a=s[i],b=s[i+1],d=s[i+2],e=s[i+3];
+     o[i]=mul(a,2)^mul(b,3)^d^e;
+     o[i+1]=a^mul(b,2)^mul(d,3)^e;
+     o[i+2]=a^b^mul(d,2)^mul(e,3);
+     o[i+3]=mul(a,3)^b^d^mul(e,2);
+   }
+   return o;
+ }
+ const stages=[
+  {name:'الحالة الأصلية',desc:'كل خانة تمثّل Byte واحداً. AES يرتّب 16 Byte في مصفوفة State بحجم 4×4.' ,fn:s=>s.slice()},
+  {name:'AddRoundKey',desc:'عملية XOR بين كل Byte من البيانات والـ Byte المقابل له من مفتاح الجولة.',fn:addKey},
+  {name:'SubBytes',desc:'استبدال كل Byte بقيمة أخرى باستعمال جدول S-Box؛ هذه الخطوة غير خطية وتساعد على إخفاء العلاقات.',fn:subBytes},
+  {name:'ShiftRows',desc:'إزاحة الصفوف دورياً إلى اليسار: الصف 0 بلا إزاحة، ثم 1 و2 و3 خانات.',fn:shiftRows},
+  {name:'MixColumns',desc:'خلط Bytes داخل كل عمود باستعمال عمليات في حقل Galois GF(2⁸).',fn:mixColumns},
+  {name:'AddRoundKey النهائي',desc:'XOR مع مفتاح الجولة التالية. هذه نهاية جولة واحدة توضيحية؛ AES-128 الكامل يتكوّن من 10 جولات.',fn:(s)=>s.map((v,i)=>v^roundKey[(i+5)%16])}
+ ];
+ const states=[initial];
+ for(let i=1;i<stages.length;i++)states.push(stages[i].fn(states[i-1]));
+ let step=0;
+ function drawGrid(elId,arr,previous){
+  const el=$id(elId);if(!el)return;el.innerHTML='';
+  // AES state is displayed column-first, matching its internal state indexing.
+  for(let row=0;row<4;row++)for(let col=0;col<4;col++){
+    const idx=4*col+row,cell=document.createElement('div');cell.className='aes-cell';
+    cell.textContent=arr[idx].toString(16).padStart(2,'0').toUpperCase();
+    if(previous&&arr[idx]!==previous[idx])cell.classList.add('changed');
+    el.appendChild(cell);
+  }
+ }
+ function render(){
+  drawGrid('aesStateGrid',states[step],step?states[step-1]:null);
+  $id('aesStageBadge').textContent=`المرحلة ${step} / ${stages.length-1}`;
+  $id('aesStageName').textContent=stages[step].name;
+  $id('aesStageDescription').textContent=stages[step].desc;
+  $id('aesPrev').disabled=step===0;
+  $id('aesNext').disabled=step===stages.length-1;
+  $id('aesNext').textContent=step===stages.length-1?'اكتملت الجولة':'الخطوة التالية';
+ }
+ drawGrid('aesKeyGrid',roundKey,null);
+ $id('aesInitialState').textContent='القيم معروضة بالنظام الست عشري Hexadecimal.';
+ $id('aesNext').addEventListener('click',()=>{if(step<stages.length-1){step++;render();}});
+ $id('aesPrev').addEventListener('click',()=>{if(step>0){step--;render();}});
+ $id('aesReset').addEventListener('click',()=>{step=0;render();});
+ render();
+})();
+
+
+// Interactive textbook RSA calculator with small-number validation.
+(()=>{
+ const el=id=>document.getElementById(id);
+ let data=null,step=0;
+ const isPrime=n=>{
+  if(!Number.isSafeInteger(n)||n<2)return false;
+  for(let i=2;i*i<=n;i++)if(n%i===0)return false;
+  return true;
+ };
+ const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+ function modPow(base,exp,mod){
+  let result=1n,b=BigInt(base)%BigInt(mod),e=BigInt(exp),m=BigInt(mod);
+  while(e>0n){if(e&1n)result=result*b%m;b=b*b%m;e>>=1n;}
+  return Number(result);
+ }
+ function inverse(e,phi){
+  let oldR=e,r=phi,oldS=1,s=0;
+  while(r!==0){const q=Math.floor(oldR/r);[oldR,r]=[r,oldR-q*r];[oldS,s]=[s,oldS-q*s];}
+  return ((oldS%phi)+phi)%phi;
+ }
+ function gcdEuclid(a,b){
+  const rows=[];
+  while(b!==0){const q=Math.floor(a/b),r=a%b;rows.push(`${a} = ${q} × ${b} + ${r}`);[a,b]=[b,r];}
+  return rows;
+ }
+ const steps=[];
+ function setStatus(msg,bad=false){el('rsaLabStatus').textContent=msg;el('rsaLabStatus').classList.toggle('error',bad);}
+ function validate(){
+  const p=Number(el('rsaP').value),q=Number(el('rsaQ').value),e=Number(el('rsaE').value),m=Number(el('rsaM').value);
+  if(!isPrime(p)||!isPrime(q)||p===q)return 'p و q لازم يكونوا عددين أوليين مختلفين.';
+  if(p>97||q>97)return 'استعمل أعداداً أولية لا تتجاوز 97 في هذا المختبر.';
+  const n=p*q,phi=(p-1)*(q-1);
+  if(!Number.isSafeInteger(e)||e<2||e>=phi||gcd(e,phi)!==1)return `اختَر e بحيث 1 < e < ${phi} و PGCD(e, φ(n)) = 1.`;
+  if(!Number.isSafeInteger(m)||m<0||m>=n)return `الرسالة m لازم تكون بين 0 و ${n-1}.`;
+  return {p,q,e,m,n,phi,d:inverse(e,phi)};
+ }
+ function buildSteps(d){
+  const {p,q,e,m,n,phi}=d;
+  const c=modPow(m,e,n),back=modPow(c,d,n);
+  d.c=c;d.back=back;
+  steps.length=0;
+  steps.push({title:'1. اختيار عددين أوليين',html:`<div class="explain">نبدأ بعددين أوليين سريين p و q. العدد الأولي لا يقبل القسمة إلا على 1 وعلى نفسه.</div><div class="formula">p = ${p} &nbsp;&nbsp; q = ${q}</div><div class="explain">نحتفظ بهذين العددين سريّين عند بناء RSA الحقيقي.</div>`});
+  steps.push({title:'2. حساب n',html:`<div class="explain">نضرب العددين للحصول على n، وهو جزء من المفتاح العام والخاص.</div><div class="formula">n = p × q = ${p} × ${q} = ${n}</div>`});
+  steps.push({title:'3. حساب دالة أويلر φ(n)',html:`<div class="explain">بما أن p و q أوليان ومختلفان:</div><div class="formula">φ(n) = (p − 1)(q − 1)<br>= ${p-1} × ${q-1} = ${phi}</div>`});
+  steps.push({title:'4. اختيار e المفتاح العام',html:`<div class="explain">نختار e أصغر من φ(n)، وأكبر من 1، ويكون القاسم المشترك الأكبر بينهما 1.</div><div class="formula">e = ${e}<br>PGCD(${e}, ${phi}) = 1</div><div class="explain">إذن المفتاح العام هو (e, n) = (${e}, ${n}).</div>`});
+  const euclid=gcdEuclid(e,phi).join('<br>');
+  steps.push({title:'5. حساب d المفتاح الخاص',html:`<div class="explain">نبحث عن d بحيث يكون:</div><div class="formula">(e × d) mod φ(n) = 1</div><div class="explain">باستعمال Extended Euclidean Algorithm نحصل على:</div><div class="formula">${euclid}<br>d = ${d.d}</div><div class="explain">المفتاح الخاص هو (d, n) = (${d.d}, ${n}).</div>`});
+  steps.push({title:'6. التشفير ثم فك التشفير',html:`<div class="explain">التشفير باستعمال المفتاح العام:</div><div class="formula">c = mᵉ mod n = ${m}^${e} mod ${n} = ${c}</div><div class="explain">فك التشفير باستعمال المفتاح الخاص:</div><div class="formula">m = cᵈ mod n = ${c}^${d.d} mod ${n} = ${back}</div><div class="explain">${back===m?'نجحنا! رجعنا نفس الرسالة الأصلية.':'لم تتطابق النتيجة، تحقق من المدخلات.'}</div>`});
+  el('rsaPublicOut').textContent=`(${e}, ${n})`;
+  el('rsaPrivateOut').textContent=`(${d.d}, ${n})`;
+  el('rsaCipherOut').textContent=String(c);
+  el('rsaPlainOut').textContent=String(back);
+  step=0;render();
+ }
+ function render(){
+  if(!steps.length)return;
+  el('rsaStepBadge').textContent=`المرحلة ${step+1} / ${steps.length}`;
+  el('rsaStepTitle').textContent=steps[step].title;
+  el('rsaStepContent').innerHTML=steps[step].html;
+  el('rsaPrevStep').disabled=step===0;
+  el('rsaNextStep').disabled=step===steps.length-1;
+  el('rsaNextStep').textContent=step===steps.length-1?'اكتملت العملية':'التالي';
+ }
+ el('rsaBuild').addEventListener('click',()=>{
+  const result=validate();
+  if(typeof result==='string'){setStatus(result,true);return;}
+  data=result;setStatus('المدخلات صحيحة. انتقل بين المراحل لمتابعة بناء RSA.');buildSteps(data);
+ });
+ el('rsaNextStep').addEventListener('click',()=>{if(step<steps.length-1){step++;render();}});
+ el('rsaPrevStep').addEventListener('click',()=>{if(step>0){step--;render();}});
+ el('rsaLabReset').addEventListener('click',()=>{
+  el('rsaP').value=11;el('rsaQ').value=13;el('rsaE').value=7;el('rsaM').value=9;
+  ['rsaPublicOut','rsaPrivateOut'].forEach(id=>el(id).textContent='(e, n)/(d, n)');
+  el('rsaCipherOut').textContent='—';el('rsaPlainOut').textContent='—';
+  steps.length=0;step=0;el('rsaStepBadge').textContent='المرحلة 0 / 6';el('rsaStepTitle').textContent='جاهز';
+  el('rsaStepContent').textContent='اضغط «تحقق وابدأ» لبدء الحساب.';
+  el('rsaPrevStep').disabled=true;el('rsaNextStep').disabled=true;setStatus('تمت إعادة المثال الافتراضي.');
+ });
+})();
+
+</script>
+</body>
+</html>
