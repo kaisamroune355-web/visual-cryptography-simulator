@@ -95,5 +95,49 @@
     <button onclick="encryptRSA(document.getElementById('rsaText').value).then(res => document.getElementById('rsaResult').innerText = res);" style="padding: 10px 20px; margin-top: 10px;">2. تشفير بالمفتاح العام</button>
 </div>
 <div>الناتج المشفر: <br><strong id="rsaResult" style="word-break: break-all; display: block; margin-top: 10px;"></strong></div>
+    <!-- ================= أقسام الخوارزميات ================= -->
+<div style="max-width: 600px; margin: 20px auto; text-align: left; direction: rtl; background: #1e1e1e; color: #fff; padding: 20px; border-radius: 10px;">
+    <h2>🔐 1. تشفير AES (متماثل)</h2>
+    <input type="text" id="inAesText" placeholder="النص الأصلي أو المشفر" style="width: 100%; padding: 10px; margin-bottom: 10px; background:#333; color:#fff; border:1px solid #555; border-radius:5px;">
+    <input type="password" id="inAesPass" placeholder="كلمة المرور (المفتاح)" style="width: 100%; padding: 10px; margin-bottom: 10px; background:#333; color:#fff; border:1px solid #555; border-radius:5px;">
+    <button id="btnAesEnc" style="padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">تشفير</button>
+    <button id="btnAesDec" style="padding: 10px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer;">فك التشفير</button>
+    <div style="margin-top: 10px; font-family: monospace; word-break: break-all; color: #00ff00;" id="resAes"></div>
+</div>
+
+<div style="max-width: 600px; margin: 20px auto; text-align: left; direction: rtl; background: #1e1e1e; color: #fff; padding: 20px; border-radius: 10px;">
+    <h2>🔑 2. تشفير RSA (غير متماثل)</h2>
+    <button id="btnRsaGen" style="padding: 10px; background: #2196F3; color: white; border: none; border-radius: 5px; margin-bottom: 10px; cursor: pointer;">توليد المفاتيح أولاً</button>
+    <input type="text" id="inRsaText" placeholder="النص (قصير جداً) أو النص المشفر" style="width: 100%; padding: 10px; margin-bottom: 10px; background:#333; color:#fff; border:1px solid #555; border-radius:5px;">
+    <button id="btnRsaEnc" style="padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">تشفير</button>
+    <button id="btnRsaDec" style="padding: 10px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer;">فك التشفير</button>
+    <div style="margin-top: 10px; font-family: monospace; word-break: break-all; color: #00ff00;" id="resRsa"></div>
+</div>
+
+<div style="max-width: 600px; margin: 20px auto; text-align: left; direction: rtl; background: #1e1e1e; color: #fff; padding: 20px; border-radius: 10px;">
+    <h2>#️⃣ 3. دالة التجزئة Hash (SHA-256)</h2>
+    <p style="font-size: 12px; color: #aaa;">(ملاحظة: الـ Hash لا يمكن فك تشفيره، هو تحويل باتجاه واحد)</p>
+    <input type="text" id="inHashText" placeholder="النص المطلوب تجزئته" style="width: 100%; padding: 10px; margin-bottom: 10px; background:#333; color:#fff; border:1px solid #555; border-radius:5px;">
+    <button id="btnHash" style="padding: 10px; background: #9C27B0; color: white; border: none; border-radius: 5px; cursor: pointer;">توليد الـ Hash</button>
+    <div style="margin-top: 10px; font-family: monospace; word-break: break-all; color: #00ff00;" id="resHash"></div>
+</div>
+
+<div style="max-width: 600px; margin: 20px auto; text-align: left; direction: rtl; background: #1e1e1e; color: #fff; padding: 20px; border-radius: 10px;">
+    <h2>🏛️ 4. تشفير قيصر (Caesar)</h2>
+    <input type="text" id="inCaesarText" placeholder="النص" style="width: 100%; padding: 10px; margin-bottom: 10px; background:#333; color:#fff; border:1px solid #555; border-radius:5px;">
+    <input type="number" id="inCaesarShift" placeholder="مقدار الإزاحة (مثلاً 3)" value="3" style="width: 100%; padding: 10px; margin-bottom: 10px; background:#333; color:#fff; border:1px solid #555; border-radius:5px;">
+    <button id="btnCaesarEnc" style="padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">تشفير</button>
+    <button id="btnCaesarDec" style="padding: 10px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer;">فك التشفير</button>
+    <div style="margin-top: 10px; font-family: monospace; word-break: break-all; color: #00ff00;" id="resCaesar"></div>
+</div>
+
+<div style="max-width: 600px; margin: 20px auto; text-align: left; direction: rtl; background: #1e1e1e; color: #fff; padding: 20px; border-radius: 10px; margin-bottom: 50px;">
+    <h2>🗝️ 5. تشفير فيجنر (Vigenère)</h2>
+    <input type="text" id="inVigText" placeholder="النص" style="width: 100%; padding: 10px; margin-bottom: 10px; background:#333; color:#fff; border:1px solid #555; border-radius:5px;">
+    <input type="text" id="inVigKey" placeholder="الكلمة المفتاحية (حروف إنجليزية)" style="width: 100%; padding: 10px; margin-bottom: 10px; background:#333; color:#fff; border:1px solid #555; border-radius:5px;">
+    <button id="btnVigEnc" style="padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">تشفير</button>
+    <button id="btnVigDec" style="padding: 10px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer;">فك التشفير</button>
+    <div style="margin-top: 10px; font-family: monospace; word-break: break-all; color: #00ff00;" id="resVig"></div>
+</div>
 </body>
 </html>
