@@ -1,2 +1,8 @@
-# visual-cryptography-simulator
-Interactive visual cryptography simulator with AES and RSA labs.
+لتشفير البصري (Visual Cryptography Simulator)
+
+هذا المشروع يطبق خوارزمية Naor-Shamir (2-out-of-2) للتشفير البصري.
+
+· كيف يعمل؟ يقوم الكود بتحويل كل بكسل في الصورة الأصلية إلى مربع مكون من 4 بكسلات (2x2). إذا كان البكسل أسود، يتم وضع نمط متطابق في الجزأين. وإذا كان أبيض، يتم وضع نمط متعاكس.
+· النتيجة: لا يمكن رؤية أي معلومات من الجزء الأول أو الثاني بشكل منفصل (يظهران كضجيج). عند دمج الجزأين معاً (بشفافية أو رقمياً)، تظهر الصورة الأصلية.
+· التقنيات المستخدمة: HTML5 Canvas, Vanilla JavaScript.
+· رابط الموقع المباشر: https://kaisamroune355-web.github.io/visual-cryptography-simulator/
