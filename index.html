@@ -74,6 +74,26 @@
     </div>
 
     <!-- ربط ملف الجافاسكريبت -->
-    <script src="js/app.js"></script>
+    <script src="js/app.js"></script> 
+    <hr style="margin: 40px 0;">
+<h2>🔐 مختبر خوارزمية AES (تشفير متماثل)</h2>
+<div style="margin-bottom: 20px;">
+    <input type="text" id="aesText" placeholder="اكتب النص هنا..." style="padding: 8px; margin: 5px; width: 60%;">
+    <input type="password" id="aesKey" placeholder="كلمة المرور (المفتاح)..." style="padding: 8px; margin: 5px; width: 60%;">
+    <br>
+    <button onclick="document.getElementById('aesResult').innerText = 'جاري التشفير...'; encryptAES(document.getElementById('aesText').value, document.getElementById('aesKey').value).then(res => document.getElementById('aesResult').innerText = res);" style="padding: 10px 20px; margin-top: 10px;">تشفير AES</button>
+</div>
+<div>الناتج المشفر (Hex): <br><strong id="aesResult" style="word-break: break-all; display: block; margin-top: 10px;"></strong></div>
+
+<hr style="margin: 40px 0;">
+<h2>🔑 مختبر خوارزمية RSA (تشفير غير متماثل)</h2>
+<div style="margin-bottom: 20px;">
+    <button onclick="generateRSAKeys().then(msg => alert(msg))" style="padding: 10px 20px;">1. توليد زوج المفاتيح (Public & Private)</button>
+    <br><br>
+    <input type="text" id="rsaText" placeholder="اكتب النص السري هنا..." style="padding: 8px; margin: 5px; width: 60%;">
+    <br>
+    <button onclick="encryptRSA(document.getElementById('rsaText').value).then(res => document.getElementById('rsaResult').innerText = res);" style="padding: 10px 20px; margin-top: 10px;">2. تشفير بالمفتاح العام</button>
+</div>
+<div>الناتج المشفر: <br><strong id="rsaResult" style="word-break: break-all; display: block; margin-top: 10px;"></strong></div>
 </body>
 </html>
